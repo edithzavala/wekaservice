@@ -1,0 +1,10 @@
+version: '2'
+
+services:
+    wekaservice:
+        image: wekaservice
+        ports:
+            - "8085:8080"
+        volumes:
+        - /weka_ksam/:/tmp/weka
+

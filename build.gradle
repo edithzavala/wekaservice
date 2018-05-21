@@ -1,0 +1,39 @@
+plugins {
+	id 'org.springframework.boot' version '2.0.0.RELEASE'
+}
+
+apply plugin: 'java'
+apply plugin: 'eclipse'
+apply plugin: 'idea'
+apply plugin: 'io.spring.dependency-management'
+
+compileJava {
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
+}
+
+// In this section you declare where to find the dependencies of your project
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile("org.springframework.boot:spring-boot-starter-actuator")
+    
+    compile("org.springframework:spring-web")
+    
+    compile("org.springframework.boot:spring-boot-starter-web")
+    
+    compile("com.fasterxml.jackson.core:jackson-databind")
+    
+	// https://mvnrepository.com/artifact/nz.ac.waikato.cms.weka/weka-stable
+    compile group: 'nz.ac.waikato.cms.weka', name: 'weka-stable', version: '3.6.12'
+   
+    testCompile("junit:junit")
+   
+}
+
+task wrapper(type: Wrapper) {
+      gradleVersion = '4.5'
+}
+
