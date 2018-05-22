@@ -4,9 +4,11 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,11 +50,11 @@ public class WekaMiner {
 	    // (fv.elementAt(i))).toString(dataset.classAttribute()));
 	    // }
 	    /************************* 10-fold Cross-validation ************************/
-	    int folds = 10;
-	    int seed = 1;
-	    Random rand = new Random(seed);
-	    Evaluation evalJ = new Evaluation(dataset);
-	    evalJ.crossValidateModel(jr, dataset, folds, rand);
+	    // int folds = 10;
+	    // int seed = 1;
+	    // Random rand = new Random(seed);
+	    // Evaluation evalJ = new Evaluation(dataset);
+	    // evalJ.crossValidateModel(jr, dataset, folds, rand);
 	    /******************************************************************/
 	    //
 	    // ArrayList<Rule> fv = jr.getRuleset();
@@ -69,30 +71,35 @@ public class WekaMiner {
 	    // LOGGER.info("fMeasure", eval.fMeasure(0));
 	    //
 	    // }
-	    LOGGER.info(evalJ.toSummaryString("Eval:\n", false));
+	    // LOGGER.info(evalJ.toSummaryString("Eval:\n", false));
+	    modelFileName = dataName + "_model.model";
+	    weka.core.SerializationHelper.write(modelFileName, jr);
 	    break;
 	case "Regression":
-	    DataSource sourceTest = new DataSource(testFile);
-	    Instances datasetTest = sourceTest.getDataSet();
-	    datasetTest.setClassIndex(datasetTest.numAttributes() - 1);
-
 	    LinearRegression lr = new LinearRegression();
 	    lr.buildClassifier(dataset);
 	    LOGGER.info("" + lr);
-	    Evaluation evalR = new Evaluation(dataset);
-	    evalR.evaluateModel(lr, datasetTest);
-	    LOGGER.info(evalR.toSummaryString("Eval:\n", false));
 
-	    DataSource sourcePredict = new DataSource(predictFile);
-	    Instances datasetPredict = sourcePredict.getDataSet();
-	    datasetPredict.setClassIndex(datasetPredict.numAttributes() - 1);
+	    /** Evaluation **/
+	    // DataSource sourceTest = new DataSource(testFile);
+	    // Instances datasetTest = sourceTest.getDataSet();
+	    // datasetTest.setClassIndex(datasetTest.numAttributes() - 1);
+	    // Evaluation evalR = new Evaluation(dataset);
+	    // evalR.evaluateModel(lr, datasetTest);
+	    // LOGGER.info(evalR.toSummaryString("Eval:\n", false));
 
-	    for (int i = 0; i < datasetPredict.numInstances(); i++) {
-		double actualVal = datasetPredict.instance(i).classValue();
-		Instance newInst = datasetPredict.instance(i);
-		double predictedVal = lr.classifyInstance(newInst);
-		LOGGER.info(Math.round(actualVal) + " predicted -> " + Math.round(predictedVal));
-	    }
+	    // DataSource sourcePredict = new DataSource(predictFile);
+	    // Instances datasetPredict = sourcePredict.getDataSet();
+	    // datasetPredict.setClassIndex(datasetPredict.numAttributes() - 1);
+	    //
+	    // for (int i = 0; i < datasetPredict.numInstances(); i++) {
+	    // double actualVal = datasetPredict.instance(i).classValue();
+	    // Instance newInst = datasetPredict.instance(i);
+	    // double predictedVal = lr.classifyInstance(newInst);
+	    // LOGGER.info(Math.round(actualVal) + " predicted -> " +
+	    // Math.round(predictedVal));
+	    // }
+	    /***************/
 	    modelFileName = dataName + "_model.model";
 	    weka.core.SerializationHelper.write(modelFileName, lr);
 
@@ -109,17 +116,17 @@ public class WekaMiner {
 	    evalIbk.evaluateModel(ibk, datasetTestIbk);
 	    LOGGER.info(evalIbk.toSummaryString("Eval:\n", false));
 
-	    DataSource sourcePredictIbK = new DataSource(predictFile);
-	    Instances datasetPredictIbk = sourcePredictIbK.getDataSet();
-	    datasetPredictIbk.setClassIndex(datasetPredictIbk.numAttributes() - 1);
-
-	    for (int i = 0; i < datasetPredictIbk.numInstances(); i++) {
-		double actualVal = datasetPredictIbk.instance(i).classValue();
-		Instance newInst = datasetPredictIbk.instance(i);
-		double predictedVal = ibk.classifyInstance(newInst);
-
-		LOGGER.info(actualVal + " predicted -> " + predictedVal);
-	    }
+	    // DataSource sourcePredictIbK = new DataSource(predictFile);
+	    // Instances datasetPredictIbk = sourcePredictIbK.getDataSet();
+	    // datasetPredictIbk.setClassIndex(datasetPredictIbk.numAttributes() - 1);
+	    //
+	    // for (int i = 0; i < datasetPredictIbk.numInstances(); i++) {
+	    // double actualVal = datasetPredictIbk.instance(i).classValue();
+	    // Instance newInst = datasetPredictIbk.instance(i);
+	    // double predictedVal = ibk.classifyInstance(newInst);
+	    //
+	    // LOGGER.info(actualVal + " predicted -> " + predictedVal);
+	    // }
 	    break;
 	case "RbfNet": // very bad performance for predicting next car position
 	    DataSource sourceTestRbfNet = new DataSource(testFile);
@@ -133,16 +140,16 @@ public class WekaMiner {
 	    evalRbfNet.evaluateModel(rbfNet, datasetTestRbfNet);
 	    LOGGER.info(evalRbfNet.toSummaryString("Eval:\n", false));
 
-	    DataSource sourcePredictRbfNet = new DataSource(predictFile);
-	    Instances datasetPredictRbfNet = sourcePredictRbfNet.getDataSet();
-	    datasetPredictRbfNet.setClassIndex(datasetPredictRbfNet.numAttributes() - 1);
-
-	    for (int i = 0; i < datasetPredictRbfNet.numInstances(); i++) {
-		double actualVal = datasetPredictRbfNet.instance(i).classValue();
-		Instance newInst = datasetPredictRbfNet.instance(i);
-		double predictedVal = rbfNet.classifyInstance(newInst);
-		LOGGER.info(actualVal + " predicted -> " + predictedVal);
-	    }
+	    // DataSource sourcePredictRbfNet = new DataSource(predictFile);
+	    // Instances datasetPredictRbfNet = sourcePredictRbfNet.getDataSet();
+	    // datasetPredictRbfNet.setClassIndex(datasetPredictRbfNet.numAttributes() - 1);
+	    //
+	    // for (int i = 0; i < datasetPredictRbfNet.numInstances(); i++) {
+	    // double actualVal = datasetPredictRbfNet.instance(i).classValue();
+	    // Instance newInst = datasetPredictRbfNet.instance(i);
+	    // double predictedVal = rbfNet.classifyInstance(newInst);
+	    // LOGGER.info(actualVal + " predicted -> " + predictedVal);
+	    // }
 	    break;
 	case "LogR": // nominal-only
 	    DataSource sourceTestLogR = new DataSource(testFile);
@@ -156,16 +163,16 @@ public class WekaMiner {
 	    evalLogR.evaluateModel(logR, datasetTestLogR);
 	    LOGGER.info(evalLogR.toSummaryString("Eval:\n", false));
 
-	    DataSource sourcePredictLogR = new DataSource(predictFile);
-	    Instances datasetPredictLogR = sourcePredictLogR.getDataSet();
-	    datasetPredictLogR.setClassIndex(datasetPredictLogR.numAttributes() - 1);
-
-	    for (int i = 0; i < datasetPredictLogR.numInstances(); i++) {
-		double actualVal = datasetPredictLogR.instance(i).classValue();
-		Instance newInst = datasetPredictLogR.instance(i);
-		double predictedVal = logR.classifyInstance(newInst);
-		LOGGER.info(actualVal + " predicted -> " + predictedVal);
-	    }
+	    // DataSource sourcePredictLogR = new DataSource(predictFile);
+	    // Instances datasetPredictLogR = sourcePredictLogR.getDataSet();
+	    // datasetPredictLogR.setClassIndex(datasetPredictLogR.numAttributes() - 1);
+	    //
+	    // for (int i = 0; i < datasetPredictLogR.numInstances(); i++) {
+	    // double actualVal = datasetPredictLogR.instance(i).classValue();
+	    // Instance newInst = datasetPredictLogR.instance(i);
+	    // double predictedVal = logR.classifyInstance(newInst);
+	    // LOGGER.info(actualVal + " predicted -> " + predictedVal);
+	    // }
 	    break;
 	}
 	return modelFileName;
@@ -173,15 +180,53 @@ public class WekaMiner {
 
     public String calculatePredictions(String algorithm, String dataName, int numberOfPredictions) throws Exception {
 	String predictedValues = "";
+
 	switch (algorithm) {
 	case "JRip": // nominal-only
+	    JRip jRip = (JRip) weka.core.SerializationHelper.read(dataName + "_model.model");
+	    DataSource sourcePredictJ = new DataSource(dataName + "_predict_1.arff");
+	    Instances datasetPredictJ = sourcePredictJ.getDataSet();
+	    datasetPredictJ.setClassIndex(datasetPredictJ.numAttributes() - 1);
+	    for (int i = 0; i < datasetPredictJ.numInstances(); i++) {
+		// double actualVal = datasetPredict.instance(i).classValue();
+		Instance newInstJ = datasetPredictJ.instance(i);
+		double predictedVal = jRip.classifyInstance(newInstJ);
+		LOGGER.info("predicted -> " + predictedVal);
+		predictedValues += String.valueOf(Math.round(predictedVal)) + " ";
+	    }
 	    break;
 	case "Regression":
 
 	    LinearRegression lr = (LinearRegression) weka.core.SerializationHelper.read(dataName + "_model.model");
+	    Files.copy(Paths.get(dataName + "_predict.arff"), Paths.get(dataName + "_predict_1.arff"),
+		    java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+	    try {
+		List<String> lines = Files.lines(Paths.get(dataName + ".arff")).collect(Collectors.toList());
+		String[] line = lines.get(lines.size() - 1).split(",");
+		String toPred = "";
+		for (int i = 1; i < line.length; i++) {
+		    toPred += line[i] + ",";
+		}
+		toPred += "?\n";
+		try {
+		    File file = new File(dataName + "_predict_1.arff");
+		    if (!file.exists()) {
+			file.createNewFile();
+		    }
+
+		    FileWriter fileWritter = new FileWriter(file, true);
+		    BufferedWriter output = new BufferedWriter(fileWritter);
+		    output.write(toPred);
+		    output.close();
+		} catch (IOException e) {
+		    e.printStackTrace();
+		}
+	    } catch (IOException e) {
+		e.printStackTrace();
+	    }
 
 	    for (int i = 0; i < numberOfPredictions; i++) {
-		DataSource sourcePredict = new DataSource(dataName + "_predict.arff");
+		DataSource sourcePredict = new DataSource(dataName + "_predict_1.arff");
 		Instances datasetPredict = sourcePredict.getDataSet();
 		datasetPredict.setClassIndex(datasetPredict.numAttributes() - 1);
 		// double actualVal = datasetPredict.instance(i).classValue();
@@ -191,13 +236,14 @@ public class WekaMiner {
 		// LOGGER.info(Math.round(actualVal) + " predicted -> " +
 		// Math.round(predictedVal));
 		List<String> newLineInstance = new ArrayList<>();
-		for (int j = 1; j < datasetPredict.numAttributes(); j++) {
+		for (int j = 1; j < datasetPredict.numAttributes() - 1; j++) {
 		    newLineInstance.add(String.valueOf(Math.round(newInst.value(j))));
 		}
 		newLineInstance.add(String.valueOf(Math.round(predictedVal)));
-		predictedValues += Math.round(predictedVal) + "\n";
+		newLineInstance.add("?");
+		predictedValues += Math.round(predictedVal) + " ";
 		try {
-		    File file = new File(dataName + "_predict.arff");
+		    File file = new File(dataName + "_predict_1.arff");
 		    if (!file.exists()) {
 			file.createNewFile();
 		    }
