@@ -2,9 +2,9 @@ version: '2'
 
 services:
     wekaservice:
-        image: wekaservice
+        image: edithzavala/wekaservice
         ports:
             - "8085:8080"
         volumes:
-        - /weka_ksam/:/tmp/weka
+        - /home/revere/ezb/ksam_data/:/tmp/weka
 
