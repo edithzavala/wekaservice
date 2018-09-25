@@ -21,6 +21,7 @@ import weka.classifiers.functions.RBFNetwork;
 import weka.classifiers.lazy.IBk;
 import weka.classifiers.rules.JRip;
 import weka.classifiers.rules.JRip.RipperRule;
+import weka.classifiers.trees.J48;
 import weka.core.FastVector;
 import weka.core.Instance;
 import weka.core.Instances;
@@ -77,16 +78,48 @@ public class WekaMiner {
 		LOGGER.info("Rule " + i + " :" + ((RipperRule) (fv.elementAt(i))).toString(dataset.classAttribute()));
 	    }
 	    // // jsonResponse.put("Rules", ja);
-	    LOGGER.info("ErrorRate" + evalJ.errorRate());
-	    LOGGER.info("Precision" + evalJ.precision(0));
-	    LOGGER.info("Recall" + evalJ.recall(0));
-	    LOGGER.info("fMeasure" + evalJ.fMeasure(0));
+	    LOGGER.info("ErrorRate: " + evalJ.errorRate());
+	    LOGGER.info("Precision: " + evalJ.precision(0));
+	    LOGGER.info("Recall: " + evalJ.recall(0));
+	    LOGGER.info("fMeasure: " + evalJ.fMeasure(0));
 	    //
 	    // }
 	    // LOGGER.info(evalJ.toSummaryString("Eval:\n", false));
 
 	    modelFileName = dataName + "_jrip_model.model";
 	    weka.core.SerializationHelper.write(modelFileName, jr);
+
+	    break;
+	case "J48": // nominal-only
+
+	    J48 j48 = new J48();
+	    j48.buildClassifier(dataset);
+	    // FastVector fv = jr.getRuleset();
+	    // for (int i = 0; i < jr.getRuleset().size(); i++) {
+	    // LOGGER.info(((RipperRule)
+	    // (fv.elementAt(i))).toString(dataset.classAttribute()));
+	    // }
+	    /************************* 10-fold Cross-validation ************************/
+	    // int folds = 10;
+	    // int seed = 1;
+	    // Random rand = new Random(seed);
+	    Evaluation evalJ48 = new Evaluation(dataset);
+	    evalJ48.crossValidateModel(j48, dataset, folds, rand);
+	    /******************************************************************/
+	    //
+
+	    // // jsonResponse.put("Rules", ja);
+	    LOGGER.info("J48 tree/graph: " + j48.graph());
+	    LOGGER.info("ErrorRate: " + evalJ48.errorRate());
+	    LOGGER.info("Precision: " + evalJ48.precision(0));
+	    LOGGER.info("Recall: " + evalJ48.recall(0));
+	    LOGGER.info("fMeasure: " + evalJ48.fMeasure(0));
+	    //
+	    // }
+	    // LOGGER.info(evalJ.toSummaryString("Eval:\n", false));
+
+	    modelFileName = dataName + "_j48_model.model";
+	    weka.core.SerializationHelper.write(modelFileName, j48);
 
 	    break;
 	case "Regression":
@@ -214,10 +247,23 @@ public class WekaMiner {
 	    Instances datasetPredictJ = sourcePredictJ.getDataSet();
 	    datasetPredictJ.setClassIndex(datasetPredictJ.numAttributes() - 1);
 	    for (int i = 0; i < datasetPredictJ.numInstances(); i++) {
-		// double actualVal = datasetPredict.instance(i).classValue();
+		// double actualVal = datasetPredictJ.instance(i).classValue();
 		Instance newInstJ = datasetPredictJ.instance(i);
 		double predictedVal = jRip.classifyInstance(newInstJ);
 		// LOGGER.info("predicted jrip -> " + predictedVal);
+		predictedValues += String.valueOf(Math.round(predictedVal)) + " ";
+	    }
+	    break;
+	case "J48": // nominal-only
+	    J48 j48 = (J48) weka.core.SerializationHelper.read(dataName + "_j48_model.model");
+	    DataSource sourcePredictJ48 = new DataSource(dataName + "_j48_predict.arff");
+	    Instances datasetPredictJ48 = sourcePredictJ48.getDataSet();
+	    datasetPredictJ48.setClassIndex(datasetPredictJ48.numAttributes() - 1);
+	    for (int i = 0; i < datasetPredictJ48.numInstances(); i++) {
+		// double actualVal = datasetPredictJ48.instance(i).classValue();
+		Instance newInstJ = datasetPredictJ48.instance(i);
+		double predictedVal = j48.classifyInstance(newInstJ);
+		// LOGGER.info("predicted j48 -> " + predictedVal);
 		predictedValues += String.valueOf(Math.round(predictedVal)) + " ";
 	    }
 	    break;
