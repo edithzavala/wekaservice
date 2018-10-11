@@ -90,7 +90,7 @@ public class WekaMiner {
 	    weka.core.SerializationHelper.write(modelFileName, jr);
 
 	    break;
-	case "J48": // nominal-only
+	case "J48":
 
 	    J48 j48 = new J48();
 	    j48.buildClassifier(dataset);
@@ -188,16 +188,20 @@ public class WekaMiner {
 	    weka.core.SerializationHelper.write(modelFileName, ibk);
 	    break;
 	case "RbfNet": // very bad performance for predicting next car position
-	    DataSource sourceTestRbfNet = new DataSource(testFile);
-	    Instances datasetTestRbfNet = sourceTestRbfNet.getDataSet();
-	    datasetTestRbfNet.setClassIndex(datasetTestRbfNet.numAttributes() - 1);
+	    // DataSource sourceTestRbfNet = new DataSource(testFile);
+	    // Instances datasetTestRbfNet = sourceTestRbfNet.getDataSet();
+	    // datasetTestRbfNet.setClassIndex(datasetTestRbfNet.numAttributes() - 1);
 
 	    RBFNetwork rbfNet = new RBFNetwork();
 	    rbfNet.buildClassifier(dataset);
-	    LOGGER.info("" + rbfNet);
-	    Evaluation evalRbfNet = new Evaluation(datasetTestRbfNet);
-	    evalRbfNet.evaluateModel(rbfNet, datasetTestRbfNet);
-	    LOGGER.info(evalRbfNet.toSummaryString("Eval:\n", false));
+	    LOGGER.info("" + rbfNet.getRevision());
+
+	    modelFileName = dataName + "_rbfNet_model.model";
+	    weka.core.SerializationHelper.write(modelFileName, rbfNet);
+
+	    // Evaluation evalRbfNet = new Evaluation(datasetTestRbfNet);
+	    // evalRbfNet.evaluateModel(rbfNet, datasetTestRbfNet);
+	    // LOGGER.info(evalRbfNet.toSummaryString("Eval:\n", false));
 
 	    // DataSource sourcePredictRbfNet = new DataSource(predictFile);
 	    // Instances datasetPredictRbfNet = sourcePredictRbfNet.getDataSet();
@@ -334,7 +338,7 @@ public class WekaMiner {
 	    break;
 	case "Ibk":
 	    IBk ibk = (IBk) weka.core.SerializationHelper.read(dataName + "_knearest_model.model");
-	    if (numberOfPredictions == 1) {
+	    if (numberOfPredictions == 1) { // predict points
 		DataSource sourcePredictI = new DataSource(dataName + "_runtime.arff");
 		Instances datasetPredictI = sourcePredictI.getDataSet();
 		datasetPredictI.setClassIndex(datasetPredictI.numAttributes() - 1);
@@ -346,7 +350,7 @@ public class WekaMiner {
 		// LOGGER.info(" predicted ibk -> " + Math.round(predictedVal));
 		predictedValues += String.valueOf(Math.round(predictedVal));
 		// }
-	    } else {
+	    } else {// predict position
 		Files.copy(Paths.get(dataName + "_header.arff"), Paths.get(dataName + "_knearest_predict.arff"),
 			java.nio.file.StandardCopyOption.REPLACE_EXISTING);
 		try {
@@ -409,7 +413,18 @@ public class WekaMiner {
 		LOGGER.info(predictedValues);
 	    }
 	    break;
-	case "RbfNet": // very bad performance for predicting next car position
+	case "RbfNet":
+	    RBFNetwork rbfNet = (RBFNetwork) weka.core.SerializationHelper.read(dataName + "_rbfNet_model.model");
+	    DataSource sourcePredictRbfNet = new DataSource(dataName + "_rbfNet_predict.arff");
+	    Instances datasetPredictRbfNet = sourcePredictRbfNet.getDataSet();
+	    datasetPredictRbfNet.setClassIndex(datasetPredictRbfNet.numAttributes() - 1);
+	    for (int i = 0; i < datasetPredictRbfNet.numInstances(); i++) {
+		// double actualVal = datasetPredictJ48.instance(i).classValue();
+		Instance newInstJ = datasetPredictRbfNet.instance(i);
+		double predictedVal = rbfNet.classifyInstance(newInstJ);
+		// LOGGER.info("predicted j48 -> " + predictedVal);
+		predictedValues += String.valueOf(Math.round(predictedVal)) + " ";
+	    }
 	    break;
 	case "LogR": // nominal-only
 	    break;

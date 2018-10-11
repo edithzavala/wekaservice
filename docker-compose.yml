@@ -6,5 +6,5 @@ services:
         ports:
             - "8085:8080"
         volumes:
-        - /home/revere/ezb/ksam_data/:/tmp/weka
-
+        - ~/ksam_data/:/tmp/weka
+        network_mode: host
